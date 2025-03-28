@@ -1,0 +1,698 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPs0JE/B29/MQEzIsne+3tZ"
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "NN-UjCgNUY8Y",
+        "outputId": "235bbfd1-63d0-4a2f-e9ec-e15ad1ab40c1"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Requirement already satisfied: pandas in /usr/local/lib/python3.11/dist-packages (2.2.2)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.11/dist-packages (2.0.2)\n",
+            "Requirement already satisfied: scikit-learn in /usr/local/lib/python3.11/dist-packages (1.6.1)\n",
+            "Requirement already satisfied: matplotlib in /usr/local/lib/python3.11/dist-packages (3.10.0)\n",
+            "Requirement already satisfied: seaborn in /usr/local/lib/python3.11/dist-packages (0.13.2)\n",
+            "Requirement already satisfied: joblib in /usr/local/lib/python3.11/dist-packages (1.4.2)\n",
+            "Requirement already satisfied: requests in /usr/local/lib/python3.11/dist-packages (2.32.3)\n",
+            "Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.11/dist-packages (from pandas) (2.8.2)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.11/dist-packages (from pandas) (2025.1)\n",
+            "Requirement already satisfied: tzdata>=2022.7 in /usr/local/lib/python3.11/dist-packages (from pandas) (2025.1)\n",
+            "Requirement already satisfied: scipy>=1.6.0 in /usr/local/lib/python3.11/dist-packages (from scikit-learn) (1.14.1)\n",
+            "Requirement already satisfied: threadpoolctl>=3.1.0 in /usr/local/lib/python3.11/dist-packages (from scikit-learn) (3.6.0)\n",
+            "Requirement already satisfied: contourpy>=1.0.1 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (1.3.1)\n",
+            "Requirement already satisfied: cycler>=0.10 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (0.12.1)\n",
+            "Requirement already satisfied: fonttools>=4.22.0 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (4.56.0)\n",
+            "Requirement already satisfied: kiwisolver>=1.3.1 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (1.4.8)\n",
+            "Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (24.2)\n",
+            "Requirement already satisfied: pillow>=8 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (11.1.0)\n",
+            "Requirement already satisfied: pyparsing>=2.3.1 in /usr/local/lib/python3.11/dist-packages (from matplotlib) (3.2.1)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/dist-packages (from requests) (3.4.1)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/dist-packages (from requests) (3.10)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/dist-packages (from requests) (2.3.0)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/dist-packages (from requests) (2025.1.31)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.11/dist-packages (from python-dateutil>=2.8.2->pandas) (1.17.0)\n"
+          ]
+        }
+      ],
+      "source": [
+        "pip install pandas numpy scikit-learn matplotlib seaborn joblib requests\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import matplotlib.pyplot as plt\n",
+        "import seaborn as sns\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.ensemble import RandomForestRegressor\n",
+        "from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n",
+        "import joblib\n",
+        "import requests  #  future real-time data retrieval\n"
+      ],
+      "metadata": {
+        "id": "-ydjFJMUUelQ"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import os\n",
+        "print(os.listdir())  # listing my files\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Pknl3T7tZLR0",
+        "outputId": "848a7231-db87-48b8-a6e7-983002c28a46"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "['.config', 'daily_88101_2024.zip', 'sample_data']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import zipfile\n",
+        "\n",
+        "zip_path = \"daily_88101_2024.zip\"  # file used\n",
+        "\n",
+        "with zipfile.ZipFile(zip_path, 'r') as zip_ref:\n",
+        "    zip_ref.extractall(\"/content/\")\n",
+        "\n",
+        "print(\"Extraction complete!\")\n",
+        "import os\n",
+        "print(os.listdir(\"/content/\"))\n",
+        "\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "pQi8HOMsZV-x",
+        "outputId": "3f41a636-8bdc-471d-9926-44bd7ce2b5c6"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Extraction complete!\n",
+            "['.config', 'daily_88101_2024.zip', 'daily_88101_2024.csv', 'sample_data']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "R13XUOb5ZVL8"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = pd.read_csv(\"daily_88101_2024.csv\")\n",
+        "\n",
+        "print(df.head())\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "jaHC5UTEUfqS",
+        "outputId": "6bb06c5b-aaea-4119-da51-b5262193b3b9"
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "<ipython-input-5-84591779098f>:2: DtypeWarning: Columns (13) have mixed types. Specify dtype option on import or set low_memory=False.\n",
+            "  df = pd.read_csv(\"daily_88101_2024.csv\")\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "   State Code  County Code  Site Num  Parameter Code  POC   Latitude  \\\n",
+            "0           1            3        10           88101    3  30.497478   \n",
+            "1           1            3        10           88101    3  30.497478   \n",
+            "2           1            3        10           88101    3  30.497478   \n",
+            "3           1            3        10           88101    3  30.497478   \n",
+            "4           1            3        10           88101    3  30.497478   \n",
+            "\n",
+            "   Longitude  Datum            Parameter Name Sample Duration  ... AQI  \\\n",
+            "0 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "1 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "2 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "3 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "4 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "\n",
+            "  Method Code                                        Method Name  \\\n",
+            "0         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "1         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "2         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "3         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "4         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "\n",
+            "     Local Site Name                                            Address  \\\n",
+            "0  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "1  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "2  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "3  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "4  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "\n",
+            "   State Name  County Name  City Name                  CBSA Name  \\\n",
+            "0     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "1     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "2     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "3     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "4     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "\n",
+            "   Date of Last Change  \n",
+            "0           2024-10-31  \n",
+            "1           2024-10-31  \n",
+            "2           2024-10-31  \n",
+            "3           2024-10-31  \n",
+            "4           2024-10-31  \n",
+            "\n",
+            "[5 rows x 29 columns]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(df.head())\n",
+        "print(df.columns)  #\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "xqmD64dfa4Tq",
+        "outputId": "879d02f0-e457-40ee-cb0d-ff95092dfd1d"
+      },
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "   State Code  County Code  Site Num  Parameter Code  POC   Latitude  \\\n",
+            "0           1            3        10           88101    3  30.497478   \n",
+            "1           1            3        10           88101    3  30.497478   \n",
+            "2           1            3        10           88101    3  30.497478   \n",
+            "3           1            3        10           88101    3  30.497478   \n",
+            "4           1            3        10           88101    3  30.497478   \n",
+            "\n",
+            "   Longitude  Datum            Parameter Name Sample Duration  ... AQI  \\\n",
+            "0 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "1 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "2 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "3 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "4 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "\n",
+            "  Method Code                                        Method Name  \\\n",
+            "0         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "1         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "2         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "3         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "4         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "\n",
+            "     Local Site Name                                            Address  \\\n",
+            "0  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "1  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "2  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "3  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "4  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "\n",
+            "   State Name  County Name  City Name                  CBSA Name  \\\n",
+            "0     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "1     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "2     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "3     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "4     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "\n",
+            "   Date of Last Change  \n",
+            "0           2024-10-31  \n",
+            "1           2024-10-31  \n",
+            "2           2024-10-31  \n",
+            "3           2024-10-31  \n",
+            "4           2024-10-31  \n",
+            "\n",
+            "[5 rows x 29 columns]\n",
+            "Index(['State Code', 'County Code', 'Site Num', 'Parameter Code', 'POC',\n",
+            "       'Latitude', 'Longitude', 'Datum', 'Parameter Name', 'Sample Duration',\n",
+            "       'Pollutant Standard', 'Date Local', 'Units of Measure', 'Event Type',\n",
+            "       'Observation Count', 'Observation Percent', 'Arithmetic Mean',\n",
+            "       '1st Max Value', '1st Max Hour', 'AQI', 'Method Code', 'Method Name',\n",
+            "       'Local Site Name', 'Address', 'State Name', 'County Name', 'City Name',\n",
+            "       'CBSA Name', 'Date of Last Change'],\n",
+            "      dtype='object')\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "\n",
+        "df_pollutants = pd.read_csv(\"daily_88101_2024.csv\")\n",
+        "\n",
+        "print(df_pollutants.head())\n",
+        "\n",
+        "print(df_pollutants[['Latitude', 'Longitude', 'Pollutant Standard']].dtypes)\n",
+        "\n",
+        "df_pollutants['Latitude'] = pd.to_numeric(df_pollutants['Latitude'], errors='coerce')\n",
+        "df_pollutants['Longitude'] = pd.to_numeric(df_pollutants['Longitude'], errors='coerce')\n",
+        "df_pollutants['Pollutant Standard'] = pd.to_numeric(df_pollutants['Pollutant Standard'], errors='coerce')\n"
+      ],
+      "metadata": {
+        "id": "90sCogpNdFO3",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "f70d05af-c962-41e5-ada3-09e07d2c1012"
+      },
+      "execution_count": 10,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "<ipython-input-10-86564e920626>:4: DtypeWarning: Columns (13) have mixed types. Specify dtype option on import or set low_memory=False.\n",
+            "  df_pollutants = pd.read_csv(\"daily_88101_2024.csv\")  # Replace with your actual file name\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "   State Code  County Code  Site Num  Parameter Code  POC   Latitude  \\\n",
+            "0           1            3        10           88101    3  30.497478   \n",
+            "1           1            3        10           88101    3  30.497478   \n",
+            "2           1            3        10           88101    3  30.497478   \n",
+            "3           1            3        10           88101    3  30.497478   \n",
+            "4           1            3        10           88101    3  30.497478   \n",
+            "\n",
+            "   Longitude  Datum            Parameter Name Sample Duration  ... AQI  \\\n",
+            "0 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "1 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "2 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "3 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "4 -87.880258  NAD83  PM2.5 - Local Conditions          1 HOUR  ... NaN   \n",
+            "\n",
+            "  Method Code                                        Method Name  \\\n",
+            "0         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "1         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "2         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "3         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "4         209  Met One BAM-1022 Mass Monitor w/ VSCC or TE-PM...   \n",
+            "\n",
+            "     Local Site Name                                            Address  \\\n",
+            "0  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "1  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "2  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "3  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "4  FAIRHOPE, Alabama  FAIRHOPE HIGH SCHOOL, 1 PIRATE DRIVE, FAIRHOPE...   \n",
+            "\n",
+            "   State Name  County Name  City Name                  CBSA Name  \\\n",
+            "0     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "1     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "2     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "3     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "4     Alabama      Baldwin   Fairhope  Daphne-Fairhope-Foley, AL   \n",
+            "\n",
+            "   Date of Last Change  \n",
+            "0           2024-10-31  \n",
+            "1           2024-10-31  \n",
+            "2           2024-10-31  \n",
+            "3           2024-10-31  \n",
+            "4           2024-10-31  \n",
+            "\n",
+            "[5 rows x 29 columns]\n",
+            "Latitude              float64\n",
+            "Longitude             float64\n",
+            "Pollutant Standard     object\n",
+            "dtype: object\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import tensorflow as tf\n",
+        "from tensorflow import keras\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "\n",
+        "df = pd.read_csv(\"daily_88101_2024.csv\")\n",
+        "df.dropna(inplace=True)\n",
+        "\n",
+        "print(\"Dataset size:\", df.shape)\n",
+        "\n",
+        "df_pollutants = df[df['Parameter Name'].str.contains('PM2.5|NO2|O3', case=False, na=False)]\n",
+        "\n",
+        "if df_pollutants.empty:\n",
+        "    raise ValueError(\"Filtered dataframe is empty. Check 'Parameter Name' values.\")\n",
+        "\n",
+        "df_pollutants['Date Local'] = pd.to_datetime(df_pollutants['Date Local'])\n",
+        "df_pollutants['Day of Year'] = df_pollutants['Date Local'].dt.dayofyear\n",
+        "\n",
+        "X = df_pollutants[['Arithmetic Mean', 'Day of Year', 'Latitude', 'Longitude', '1st Max Value']]\n",
+        "y = df_pollutants['AQI']\n",
+        "\n",
+        "# prevention\n",
+        "if X.empty or y.empty:\n",
+        "    raise ValueError(\"Feature matrix X or target y is empty. Check data processing steps.\")\n",
+        "\n",
+        "X = X.to_numpy()\n",
+        "y = y.to_numpy()\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "\n",
+        "scaler = StandardScaler()\n",
+        "X_scaled = scaler.fit_transform(X)\n",
+        "\n",
+        "\n",
+        "print(\"X shape:\", X.shape)\n",
+        "print(\"y shape:\", y.shape)\n",
+        "\n",
+        "# prevention\n",
+        "if len(X) < 2:\n",
+        "    raise ValueError(\"Not enough data samples to split. Consider using more data.\")\n",
+        "\n",
+        "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n",
+        "\n",
+        "# normalize\n",
+        "# decreased mae by 0.20!\n",
+        "scaler = StandardScaler()\n",
+        "X_train_scaled = scaler.fit_transform(X_train)\n",
+        "X_test_scaled = scaler.transform(X_test)\n",
+        "\n",
+        "# Define NN\n",
+        "model = keras.Sequential([\n",
+        "    keras.layers.Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),\n",
+        "    keras.layers.Dense(32, activation='relu'),\n",
+        "    keras.layers.Dense(16, activation='relu'),\n",
+        "    keras.layers.Dense(1)\n",
+        "])\n",
+        "\n",
+        "model.compile(optimizer='adam', loss='mse', metrics=['mae'])\n",
+        "history = model.fit(X_train_scaled, y_train, epochs=50, batch_size=32, validation_data=(X_test_scaled, y_test))\n",
+        "\n",
+        "test_loss, test_mae = model.evaluate(X_test_scaled, y_test)\n",
+        "print(f\"Test MAE: {test_mae:.2f}\")\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "j5WV1lZQk_br",
+        "outputId": "585215f1-94ad-4467-f6f3-1a8e7e7107e0"
+      },
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "<ipython-input-14-9d9771ef4d31>:9: DtypeWarning: Columns (13) have mixed types. Specify dtype option on import or set low_memory=False.\n",
+            "  df = pd.read_csv(\"daily_88101_2024.csv\")\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Dataset size: (8694, 29)\n",
+            "X shape: (8694, 5)\n",
+            "y shape: (8694,)\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.11/dist-packages/keras/src/layers/core/dense.py:87: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.\n",
+            "  super().__init__(activity_regularizer=activity_regularizer, **kwargs)\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Epoch 1/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m3s\u001b[0m 3ms/step - loss: 1379.0039 - mae: 31.2210 - val_loss: 127.6858 - val_mae: 8.4395\n",
+            "Epoch 2/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 142.8936 - mae: 7.9835 - val_loss: 61.5727 - val_mae: 5.4536\n",
+            "Epoch 3/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 44.9339 - mae: 4.5039 - val_loss: 22.5823 - val_mae: 3.0062\n",
+            "Epoch 4/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 4ms/step - loss: 17.0547 - mae: 2.4460 - val_loss: 9.7518 - val_mae: 1.4590\n",
+            "Epoch 5/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 5ms/step - loss: 7.9438 - mae: 1.3855 - val_loss: 7.8220 - val_mae: 1.1498\n",
+            "Epoch 6/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 4ms/step - loss: 3.3215 - mae: 1.1036 - val_loss: 7.4664 - val_mae: 1.0706\n",
+            "Epoch 7/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 5.2766 - mae: 1.0566 - val_loss: 7.1741 - val_mae: 0.8805\n",
+            "Epoch 8/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 3.4997 - mae: 0.9261 - val_loss: 7.0053 - val_mae: 0.8079\n",
+            "Epoch 9/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 3.2969 - mae: 0.8318 - val_loss: 6.8486 - val_mae: 0.7182\n",
+            "Epoch 10/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 2.7323 - mae: 0.7500 - val_loss: 7.3354 - val_mae: 0.8318\n",
+            "Epoch 11/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 2.3412 - mae: 0.7112 - val_loss: 7.1451 - val_mae: 0.7493\n",
+            "Epoch 12/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 2.0725 - mae: 0.6748 - val_loss: 6.6073 - val_mae: 0.6412\n",
+            "Epoch 13/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.4580 - mae: 0.5968 - val_loss: 7.0029 - val_mae: 0.7514\n",
+            "Epoch 14/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 2.0635 - mae: 0.6466 - val_loss: 6.6667 - val_mae: 0.5830\n",
+            "Epoch 15/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.8605 - mae: 0.5812 - val_loss: 6.2285 - val_mae: 0.5158\n",
+            "Epoch 16/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 5ms/step - loss: 1.6850 - mae: 0.5459 - val_loss: 6.5120 - val_mae: 0.5990\n",
+            "Epoch 17/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 4ms/step - loss: 1.5118 - mae: 0.5494 - val_loss: 6.1940 - val_mae: 0.4987\n",
+            "Epoch 18/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.3551 - mae: 0.5271 - val_loss: 6.1765 - val_mae: 0.4890\n",
+            "Epoch 19/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.0299 - mae: 0.4955 - val_loss: 6.3596 - val_mae: 0.5672\n",
+            "Epoch 20/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.8966 - mae: 0.5782 - val_loss: 6.1146 - val_mae: 0.5121\n",
+            "Epoch 21/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.9843 - mae: 0.5386 - val_loss: 7.0990 - val_mae: 0.7215\n",
+            "Epoch 22/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.9502 - mae: 0.5747 - val_loss: 6.4215 - val_mae: 0.4910\n",
+            "Epoch 23/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.6131 - mae: 0.5337 - val_loss: 6.0759 - val_mae: 0.4565\n",
+            "Epoch 24/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.5589 - mae: 0.5012 - val_loss: 6.1288 - val_mae: 0.4372\n",
+            "Epoch 25/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.5235 - mae: 0.4826 - val_loss: 6.1762 - val_mae: 0.4983\n",
+            "Epoch 26/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 0.7001 - mae: 0.4202 - val_loss: 6.7224 - val_mae: 0.7450\n",
+            "Epoch 27/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 4ms/step - loss: 0.9918 - mae: 0.5015 - val_loss: 7.4406 - val_mae: 1.0627\n",
+            "Epoch 28/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 4ms/step - loss: 2.5395 - mae: 0.6640 - val_loss: 6.1371 - val_mae: 0.4485\n",
+            "Epoch 29/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.3707 - mae: 0.4581 - val_loss: 6.1250 - val_mae: 0.4516\n",
+            "Epoch 30/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.5803 - mae: 0.5174 - val_loss: 6.1038 - val_mae: 0.4332\n",
+            "Epoch 31/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.0269 - mae: 0.4614 - val_loss: 6.3524 - val_mae: 0.5915\n",
+            "Epoch 32/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.2098 - mae: 0.4805 - val_loss: 6.3203 - val_mae: 0.5213\n",
+            "Epoch 33/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.2955 - mae: 0.4621 - val_loss: 6.2841 - val_mae: 0.5762\n",
+            "Epoch 34/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.1000 - mae: 0.4535 - val_loss: 6.6327 - val_mae: 0.8519\n",
+            "Epoch 35/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 0.9750 - mae: 0.5003 - val_loss: 6.1496 - val_mae: 0.4275\n",
+            "Epoch 36/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.2204 - mae: 0.4409 - val_loss: 6.0951 - val_mae: 0.4426\n",
+            "Epoch 37/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.5951 - mae: 0.5045 - val_loss: 6.1430 - val_mae: 0.4265\n",
+            "Epoch 38/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.0594 - mae: 0.4475 - val_loss: 5.9117 - val_mae: 0.4055\n",
+            "Epoch 39/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.6339 - mae: 0.4990 - val_loss: 6.1052 - val_mae: 0.4257\n",
+            "Epoch 40/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 5ms/step - loss: 1.3157 - mae: 0.5058 - val_loss: 6.5567 - val_mae: 0.4664\n",
+            "Epoch 41/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.2546 - mae: 0.4766 - val_loss: 6.5534 - val_mae: 0.7906\n",
+            "Epoch 42/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 2.1168 - mae: 0.5179 - val_loss: 6.5690 - val_mae: 0.6634\n",
+            "Epoch 43/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.4029 - mae: 0.4614 - val_loss: 6.4527 - val_mae: 0.5626\n",
+            "Epoch 44/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.4311 - mae: 0.5190 - val_loss: 8.2519 - val_mae: 1.2189\n",
+            "Epoch 45/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.8414 - mae: 0.6469 - val_loss: 6.2100 - val_mae: 0.5017\n",
+            "Epoch 46/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.2527 - mae: 0.5255 - val_loss: 6.0721 - val_mae: 0.4440\n",
+            "Epoch 47/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 0.7890 - mae: 0.4274 - val_loss: 6.5517 - val_mae: 0.6396\n",
+            "Epoch 48/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.0989 - mae: 0.4729 - val_loss: 6.2237 - val_mae: 0.4338\n",
+            "Epoch 49/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 0.9446 - mae: 0.4371 - val_loss: 6.2930 - val_mae: 0.4881\n",
+            "Epoch 50/50\n",
+            "\u001b[1m218/218\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 3ms/step - loss: 1.8395 - mae: 0.4982 - val_loss: 5.9812 - val_mae: 0.3902\n",
+            "\u001b[1m55/55\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 2ms/step - loss: 5.8739 - mae: 0.3868\n",
+            "Test MAE: 0.39\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n",
+        "\n",
+        "y_pred = model.predict(X_test_scaled)\n",
+        "\n",
+        "mae = mean_absolute_error(y_test, y_pred)\n",
+        "mse = mean_squared_error(y_test, y_pred)\n",
+        "r2 = r2_score(y_test, y_pred)\n",
+        "\n",
+        "print(f\"Test MAE: {mae:.2f}\") #error\n",
+        "print(f\"Test MSE: {mse:.2f}\") #error\n",
+        "print(f\"R² Score: {r2:.2f}\")  # Closer to 1 means better fit\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "c-krohnsOHzJ",
+        "outputId": "fa76980d-1ba9-4741-ac3f-69014bab8aeb"
+      },
+      "execution_count": 15,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\u001b[1m55/55\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 9ms/step\n",
+            "Test MAE: 0.39\n",
+            "Test MSE: 5.98\n",
+            "R² Score: 0.98\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "accuracy = (1 - (mae / y_test.mean())) * 100\n",
+        "print(f\"Accuracy (based on MAE reduction): {accuracy:.2f}%\")\n",
+        "# made a formula to produce an \"accuracy\" :)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "cShBt1JqONYW",
+        "outputId": "8318bcc6-12d5-460c-890a-5703dd3eb2d3"
+      },
+      "execution_count": 16,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Accuracy (based on MAE reduction): 98.97%\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "from datetime import datetime\n",
+        "\n",
+        "latitude = 30.497478\n",
+        "longitude = -87.880258\n",
+        "\n",
+        "# Realistic data\n",
+        "arithmetic_mean = 0.044385 # PM2.5 concentration in µg/m³\n",
+        "day_of_year = 143  # May 1 is the 121st day of the year\n",
+        "first_max_value = 0.073  # Maximum PM2.5 concentration observed during the day in µg/m³\n",
+        "\n",
+        "new_data = np.array([[arithmetic_mean, day_of_year, latitude, longitude, first_max_value]])\n",
+        "\n",
+        "predicted_aqi = model.predict(new_data)\n",
+        "\n",
+        "print(f\"Predicted AQI: {predicted_aqi[0]}\")\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "WxBxLxbcQQxX",
+        "outputId": "3f867da3-f499-4d7e-8721-d1f1748646af"
+      },
+      "execution_count": 23,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\u001b[1m1/1\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 36ms/step\n",
+            "Predicted AQI: [527.2652]\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
